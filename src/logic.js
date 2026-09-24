@@ -8,6 +8,8 @@ import { completion } from "@qvac/sdk";
 function looksUnusable(text) {
   if (!text || text.trim().length === 0) return true;
   if (text.length > 500) return true;
+  if (text.length < 25) return true;
+  if (!/[.!?]$/.test(text.trim()) && text.split(/\s+/).length <= 18) return true;
   const bad = [
     "i cannot", "i can't", "as an ai", "i'm not able", "i do not have", "i don't have",
     "didn't input", "did not input", "not enough information", "please provide more",
@@ -26,7 +28,7 @@ export async function generate(modelId, input) {
     history: [
       {
         role: "system",
-        content: ((v) => `Turn this honest reason into one short, professional-sounding fake meeting excuse (1-2 sentences, corporate email tone): ${v}. Reply with ONLY the excuse, no preamble.`)(input),
+        content: ((v) => `Turn this honest reason into one short, professional-sounding fake meeting excuse (1-2 full sentences, corporate email tone): ${v}. Do not reply with just an email subject line. Reply with ONLY the full excuse text, no preamble.`)(input),
       },
       { role: "user", content: `Input: ${input}` },
     ],
@@ -39,6 +41,8 @@ export async function generate(modelId, input) {
   text = text
     .trim()
     .replace(/^.*?\b(?:here'?s|here is)\b[^:\n]*:\s*\n*/i, "")
+    .trim()
+    .replace(/^subject:[^\n]*\n+/i, "")
     .trim()
     .replace(/^\([^)]*\)\s*/, "")
     .trim()
